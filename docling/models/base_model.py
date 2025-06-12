@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import Generic, Optional, Protocol, Type
@@ -9,6 +10,8 @@ from docling.datamodel.base_models import ItemAndImageEnrichmentElement, Page
 from docling.datamodel.document import ConversionResult
 from docling.datamodel.pipeline_options import BaseOptions
 from docling.datamodel.settings import settings
+
+_log = logging.getLogger(__name__)
 
 
 class BaseModelWithOptions(Protocol):
@@ -87,6 +90,11 @@ class BaseItemAndImageEnrichmentModel(
         )
 
         page_ix = element_prov.page_no - 1
+        if not (0 <= page_ix < len(conv_res.pages)):
+            _log.warning(
+                f"Element {element.id} refers to page_no {element_prov.page_no}, which is outside the processed page range (0-{len(conv_res.pages)-1}). Skipping element."
+            )
+            return None
         cropped_image = conv_res.pages[page_ix].get_image(
             scale=self.images_scale, cropbox=expanded_bbox
         )
