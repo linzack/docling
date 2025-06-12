@@ -92,7 +92,7 @@ class BaseItemAndImageEnrichmentModel(
         page_ix = element_prov.page_no - 1
         if not (0 <= page_ix < len(conv_res.pages)):
             _log.warning(
-                f"Element {element.id} refers to page_no {element_prov.page_no}, which is outside the processed page range (0-{len(conv_res.pages)-1}). Skipping element."
+                f"Element {getattr(element, 'id', 'Unknown ID')} refers to page_no {element_prov.page_no}, which is outside the processed page range (0-{len(conv_res.pages)-1}). Skipping element."
             )
             return None
         cropped_image = conv_res.pages[page_ix].get_image(
