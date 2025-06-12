@@ -90,12 +90,21 @@ class BaseItemAndImageEnrichmentModel(
         )
 
         page_ix = element_prov.page_no - 1
-        if not (0 <= page_ix < len(conv_res.pages)):
+        target_page = next((p for p in conv_res.pages if p.page_no == page_ix), None)
+
+        if target_page is None:
+            # Construct a string representing the processed absolute 0-indexed page numbers
+            processed_abs_pages_str = ", ".join(sorted(str(p.page_no) for p in conv_res.pages))
+            if not processed_abs_pages_str:  # Handle case where conv_res.pages is empty
+                processed_abs_pages_str = "none"
+
             _log.warning(
-                f"Element {getattr(element, 'id', 'Unknown ID')} refers to page_no {element_prov.page_no}, which is outside the processed page range (0-{len(conv_res.pages)-1}). Skipping element."
+                f"Element {getattr(element, 'id', 'Unknown ID')} refers to page {element_prov.page_no} (0-indexed absolute: {page_ix}), "
+                f"which is not among the processed absolute page numbers: [{processed_abs_pages_str}]. Skipping element."
             )
             return None
-        cropped_image = conv_res.pages[page_ix].get_image(
+
+        cropped_image = target_page.get_image(
             scale=self.images_scale, cropbox=expanded_bbox
         )
         return ItemAndImageEnrichmentElement(item=element, image=cropped_image)
